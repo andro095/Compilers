@@ -1,13 +1,13 @@
 import graphviz as gv
 import myfunctions as mf
 
-REGREX_OPERATORS = ['|', '*', '+', '.']
+REGREX_OPERATORS = ['|', '*', '+', '.', '?']
 
 PARENTHESIS_OPERATORS = ['(', ')']
 
 NO_CONCATENATE_OPERATORS = ['|', '(']
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')']
+NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')', '?']
 
 
 class StateNode(object):
@@ -55,16 +55,16 @@ class NFA(object):
         # Root node of syntatic tree
         self.root = mf.andres_method(mf.shunting_yard(mf.add_concatenation(exp)))
 
+        # States of NFA
+        self.states_nodes = []
+
         # Transition class for root node
         self.transition: Transition = self.build(self.root)
-
-        # States of NFA
-        self.states = []
 
         self.count = 0  # Count of states
         self.set_number_state(self.transition.initial_state)  # Set number of state
 
-        if not from_DFA: # If NFA is from DFA
+        if not from_DFA:  # If NFA is from DFA
             # Graphviz object
             self.graph = gv.Digraph('NFA', format='png')
             self.graph.attr(rankdir='LR')
@@ -185,10 +185,10 @@ class NFA(object):
             transition = Transition()
 
             initial_state = StateNode()
-            self.states.append(initial_state)
+            self.states_nodes.append(initial_state)
 
             final_state = StateNode()
-            self.states.append(final_state)
+            self.states_nodes.append(final_state)
             final_state.is_final = True
 
             initial_state.add_transition((node.value, final_state))
@@ -199,21 +199,22 @@ class NFA(object):
             return transition
 
         else:
-            if node.value == '*' or node.value == '+':
+            if node.value == '*' or node.value == '+' or node.value == '?':
                 transition = Transition()
 
                 initial_state = StateNode()
-                self.states.append(initial_state)
+                self.states_nodes.append(initial_state)
 
                 final_state = StateNode()
-                self.states.append(final_state)
+                self.states_nodes.append(final_state)
                 final_state.is_final = True
 
                 initial_state.add_transition(('ε', transition_left.initial_state))
-                if node.value == '*':
+                if node.value != '+':
                     initial_state.add_transition(('ε', final_state))
 
-                transition_left.final_state.add_transition(('ε', transition_left.initial_state))
+                if node.value != '?':
+                    transition_left.final_state.add_transition(('ε', transition_left.initial_state))
                 transition_left.final_state.add_transition(('ε', final_state))
 
                 transition_left.final_state.is_final = False
@@ -227,10 +228,10 @@ class NFA(object):
                 transition = Transition()
 
                 initial_state = StateNode()
-                self.states.append(initial_state)
+                self.states_nodes.append(initial_state)
 
                 final_state = StateNode()
-                self.states.append(final_state)
+                self.states_nodes.append(final_state)
 
                 final_state.is_final = True
                 final_state.is_join_node = True

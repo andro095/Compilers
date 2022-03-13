@@ -1,5 +1,6 @@
 import myfunctions as mf
 import thompson as th
+import subsets as sb
 
 menu_machines = """
 Ingrese una opción del menú:
@@ -10,11 +11,13 @@ Ingrese una opción del menú:
 if __name__ == '__main__':
     regrex = input('Ingresa la expresión regular: ')
 
+    dfa = sb.Subsets(regrex)
+
     nfa = th.NFA(regrex)
 
-    string = input('Ingresa la cadena a evaluar: ')
+    # string = input('Ingresa la cadena a evaluar: ')
 
-    print('{}'.format('SI' if nfa.evaluate(string) else 'NO'))
+    # print('{}'.format('SI' if nfa.evaluate(string) else 'NO'))
     #print(reg)
     #th.andres_method(reg)
     #printPostOrder(th.andres_method(reg))

@@ -1,10 +1,10 @@
-REGREX_OPERATORS = ['|', '*', '+', '.']
+REGREX_OPERATORS = ['|', '*', '+', '.', '?']
 
 PARENTHESIS_OPERATORS = ['(', ')']
 
 NO_CONCATENATE_OPERATORS = ['|', '(']
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')']
+NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')', '?']
 
 
 def check_parentheses(exp):
@@ -187,7 +187,7 @@ def shunting_yard(exp):
     :param exp: The regular expression to be converted
     :return: The postfix notation of the regular expression
     """
-    precedence = {'(': 0, '|': 1, '.': 2, '*': 3, '+': 3, ')': 4}
+    precedence = {'(': 0, '|': 1, '.': 2, '*': 3, '+': 3, '?': 3, ')': 4}
     exp = exp.replace(' ', '')
 
     stack = []
