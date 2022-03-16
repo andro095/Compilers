@@ -168,10 +168,6 @@ def rechange_regrex(exp):
             reg = exp[i]
 
         elif exp[i] == '+':
-            print(exp[:i - len(reg)])
-            print(exp[i - len(reg):i])
-            print(reg)
-            print(exp[i:])
             exp = exp.replace('+', '*', 1)
             exp = exp[:i - len(reg)] + '(' + exp[i - len(reg):i] + reg + exp[i] + ')' + exp[i + 1:]
             i += len(reg) + 2
