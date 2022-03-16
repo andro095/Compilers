@@ -1,6 +1,7 @@
 import myfunctions as mf
 import thompson as th
 import subsets as sb
+import direct as dr
 
 menu_machines = """
 Ingrese una opción del menú:
@@ -12,6 +13,12 @@ if __name__ == '__main__':
     af = None
 
     regrex = input('Ingresa la expresión regular: ')
+
+    # print(mf.rechange_regrex(regrex))
+
+    af = dr.Direct(regrex)
+
+    exit(4)
 
     if not mf.validate_regrex(regrex):
         print('La expresión regular no es válida')
@@ -35,4 +42,3 @@ if __name__ == '__main__':
     word = input('Ingresa la cadena a evaluar: ')
 
     print('{}'.format('SÍ' if af.evaluate(word) else 'NO'))
-
