@@ -1,15 +1,23 @@
 import myfunctions as mf
 import graphviz as gv
-import tabulate as tb
 
 REGREX_OPERATORS = ['|', '*', '+', '.', '?']
 
 
 def get_next_position_table_row(num: int, value: str):
+    """
+    Get next position table row.
+    :param num: number of row
+    :param value: value of row
+    :return: next position table row
+    """
     return [num, value, set()]
 
 
 class Direct(object):
+    """
+    Class for generating DFA by direct algorithm.
+    """
     def __init__(self, exp):
         # Root node of syntatic tree
         self.root = mf.andres_method(mf.shunting_yard(mf.add_concatenation(mf.rechange_regrex(exp))))
@@ -30,7 +38,7 @@ class Direct(object):
         # Expand tree
         self.expand_tree()
 
-        self.count = 1
+        self.count = 1 # Number of state
 
         # Enumerate tree leafs
         self.enum_tree_leafs(self.root)
@@ -56,21 +64,6 @@ class Direct(object):
         self.create_nodes()
         self.create_edges()
         self.graph.render(filename='images/DFA_direct ', view=True)
-
-        # Print tree
-        # self.print_tree(self.root)
-
-    def print_tree(self, node: mf.Node):
-        # if node.left is not None:
-        #     self.print_tree(node.left)
-        # if node.right is not None:
-        #     self.print_tree(node.right)
-
-        print(self.final_states)
-
-        print(tb.tabulate(self.Table, headers=['Positions', 'State'] + list(self.operands)))
-
-        # print(node.value, ': ', node.last_position)
 
     def evaluate(self, word: str):
         """
@@ -166,6 +159,10 @@ class Direct(object):
         return list(x)
 
     def expand_tree(self):
+        """
+        Expand tree adding #. \n
+        :return: None
+        """
         root = mf.Node('.')
         right = mf.Node('#')
         root.right = right
@@ -173,6 +170,11 @@ class Direct(object):
         self.root = root
 
     def enum_tree_leafs(self, node: mf.Node):
+        """
+        Enumerate tree leafs. \n
+        :param node: node
+        :return: None
+        """
         if node.left is not None:
             self.enum_tree_leafs(node.left)
         if node.right is not None:
@@ -188,6 +190,11 @@ class Direct(object):
                 self.count += 1
 
     def nullable(self, node: mf.Node):
+        """
+        Check if node is nullable. \n
+        :param node: node
+        :return: None
+        """
         if node.left is not None:
             self.nullable(node.left)
         if node.right is not None:
@@ -206,6 +213,11 @@ class Direct(object):
             node.nullable = False
 
     def first(self, node: mf.Node):
+        """
+        Get first set of node. \n
+        :param node: node
+        :return: None
+        """
         if node.left is not None:
             self.first(node.left)
         if node.right is not None:
@@ -227,6 +239,11 @@ class Direct(object):
             node.first_position = {node.label}
 
     def last(self, node: mf.Node):
+        """
+        Get last set of node. \n
+        :param node: node
+        :return: None
+        """
         if node.left is not None:
             self.last(node.left)
         if node.right is not None:
@@ -248,6 +265,11 @@ class Direct(object):
             node.last_position = {node.label}
 
     def next(self, node: mf.Node):
+        """
+        Get next set of node. \n
+        :param node: node
+        :return: None
+        """
         if node.left is not None:
             self.next(node.left)
         if node.right is not None:
@@ -261,6 +283,10 @@ class Direct(object):
                 self.next_position_table[int(i) - 1][2].update(node.left.first_position)
 
     def build_table(self):
+        """
+        Build transition table. \n
+        :return:
+        """
         self.Table.append(self.get_table_row())
         self.Table[0][0] = list(self.root.first_position)
         self.Table[0][1] = 0

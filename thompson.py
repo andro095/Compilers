@@ -22,6 +22,8 @@ class StateNode(object):
 
         self.is_final = False  # Is acceptation state
 
+        self.is_evaluated = False  # Is evaluated
+
         self.is_join_node = False  # Is join node
         self.track_num = 0  # Track number
 
@@ -51,6 +53,9 @@ class Transition(object):
 
 
 class NFA(object):
+    """
+    Class for generating NFA by thompson algorithm.
+    """
     def __init__(self, exp, from_DFA=False):
         # Root node of syntatic tree
         self.root = mf.andres_method(mf.shunting_yard(mf.add_concatenation(exp)))
@@ -84,7 +89,7 @@ class NFA(object):
         if state is None:
             state = self.transition.initial_state
 
-        if state.is_final:
+        if state.is_final and len(word) == 0:
             return True
 
         for transition in state.transitions:
@@ -213,9 +218,9 @@ class NFA(object):
                 if node.value != '+':
                     initial_state.add_transition(('ε', final_state))
 
+                transition_left.final_state.add_transition(('ε', final_state))
                 if node.value != '?':
                     transition_left.final_state.add_transition(('ε', transition_left.initial_state))
-                transition_left.final_state.add_transition(('ε', final_state))
 
                 transition_left.final_state.is_final = False
 

@@ -16,6 +16,8 @@ class Subsets(object):
         self.Table = []  # DFA table
         self.final_states = []  # Final states of DFA
 
+        self.epsilon_visited = []  # List of visited states for epsilon closure
+
         # Build table
         self.build_table()
 
@@ -91,7 +93,8 @@ class Subsets(object):
         for state in states:
             epsilon_states.add(int(str(state)))
             for transition in state.transitions:
-                if transition[0] == 'ε':
+                if transition[0] == 'ε' and [state.state_num, int(str(transition[1]))] not in self.epsilon_visited:
+                    self.epsilon_visited.append([state.state_num, int(str(transition[1]))])
                     epsilon_states.add(int(str(transition[1])))
                     child_epsilon_states = self.epsilon([int(str(transition[1]))])
                     epsilon_states.update(child_epsilon_states)
@@ -122,6 +125,7 @@ class Subsets(object):
         :param symbol: symbol to move
         :return: list of states
         """
+        self.epsilon_visited = []
         return list(self.epsilon(self.move(state_numbers, symbol)))
 
     def get_dfa_state(self, state_numbers: list):

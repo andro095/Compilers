@@ -7,18 +7,13 @@ menu_machines = """
 Ingrese una opción del menú:
 1. AFN por Thompson
 2. AFN a AFD
+3. AFD directo
 """
 
 if __name__ == '__main__':
     af = None
 
     regrex = input('Ingresa la expresión regular: ')
-
-    # print(mf.rechange_regrex(regrex))
-
-    af = dr.Direct(regrex)
-
-    exit(4)
 
     if not mf.validate_regrex(regrex):
         print('La expresión regular no es válida')
@@ -28,7 +23,7 @@ if __name__ == '__main__':
         try:
             print(menu_machines)
             option = int(input('Opción: '))
-            if option < 1 or option > 2:
+            if option < 1 or option > 3:
                 raise ValueError
             break
         except ValueError:
@@ -38,6 +33,8 @@ if __name__ == '__main__':
         af = th.NFA(regrex)
     elif option == 2:
         af = sb.Subsets(regrex)
+    elif option == 3:
+        af = dr.Direct(regrex)
 
     word = input('Ingresa la cadena a evaluar: ')
 
