@@ -1,7 +1,7 @@
 import myfunctions as mf
 import graphviz as gv
 
-REGREX_OPERATORS = ['|', '*', '+', '.', '?']
+REGREX_OPERATORS = ['|', '*', '@', '.', '?']
 
 
 def get_next_position_table_row(num: int, value: str):
@@ -25,7 +25,7 @@ class Direct(object):
         self.final_node_number = 0  # Number of final node
 
         # Operands that will be used in DFA for table
-        self.operands = set(exp).difference({'(', ')', '|', '*', '+', '.', '?', 'ε'})
+        self.operands = set(exp).difference({'(', ')', '|', '*', '@', '.', '?', 'ε'})
 
         # Next Position Table
         self.next_position_table = []

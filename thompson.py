@@ -1,13 +1,13 @@
 import graphviz as gv
 import myfunctions as mf
 
-REGREX_OPERATORS = ['|', '*', '+', '.', '?']
+REGREX_OPERATORS = ['|', '*', '@', '.', '?']
 
 PARENTHESIS_OPERATORS = ['(', ')']
 
 NO_CONCATENATE_OPERATORS = ['|', '(']
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')', '?']
+NO_CONCATENATED_OPERATORS = ['|', '*', '@', ')', '?']
 
 
 class StateNode(object):
@@ -204,7 +204,7 @@ class NFA(object):
             return transition
 
         else:
-            if node.value == '*' or node.value == '+' or node.value == '?':
+            if node.value == '*' or node.value == '@' or node.value == '?':
                 transition = Transition()
 
                 initial_state = StateNode()
@@ -215,7 +215,7 @@ class NFA(object):
                 final_state.is_final = True
 
                 initial_state.add_transition(('ε', transition_left.initial_state))
-                if node.value != '+':
+                if node.value != '@':
                     initial_state.add_transition(('ε', final_state))
 
                 transition_left.final_state.add_transition(('ε', final_state))

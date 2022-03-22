@@ -1,10 +1,10 @@
-REGREX_OPERATORS = ['|', '*', '+', '.', '?']
+REGREX_OPERATORS = ['|', '*', '@', '.', '?']
 
 PARENTHESIS_OPERATORS = ['(', ')']
 
 NO_CONCATENATE_OPERATORS = ['|', '(']
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '+', ')', '?']
+NO_CONCATENATED_OPERATORS = ['|', '*', '@', ')', '?']
 
 
 def check_parentheses(exp):
@@ -164,11 +164,11 @@ def rechange_regrex(exp):
 
             i += len(new_sub_regrex) - len(sub_regrex[:-1])
 
-        elif exp[i] not in ['+'] + PARENTHESIS_OPERATORS:
+        elif exp[i] not in ['@'] + PARENTHESIS_OPERATORS:
             reg = exp[i]
 
-        elif exp[i] == '+':
-            exp = exp.replace('+', '*', 1)
+        elif exp[i] == '@':
+            exp = exp.replace('@', '*', 1)
             exp = exp[:i - len(reg)] + '(' + exp[i - len(reg):i] + reg + exp[i] + ')' + exp[i + 1:]
             i += len(reg) + 2
 
@@ -183,7 +183,7 @@ def shunting_yard(exp):
     :param exp: The regular expression to be converted
     :return: The postfix notation of the regular expression
     """
-    precedence = {'(': 0, '|': 1, '.': 2, '*': 3, '+': 3, '?': 3, ')': 4}
+    precedence = {'(': 0, '|': 1, '.': 2, '*': 3, '@': 3, '?': 3, ')': 4}
     exp = exp.replace(' ', '')
 
     stack = []

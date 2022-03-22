@@ -11,7 +11,7 @@ class Subsets(object):
         self.NFA: th.NFA = th.NFA(exp, True)  # Create NFA
 
         # Operands that will be used in DFA for table
-        self.operands = set(exp).difference({'(', ')', '|', '*', '+', '.', '?', 'ε'})
+        self.operands = set(exp).difference({'(', ')', '|', '*', '@', '.', '?', 'ε'})
 
         self.Table = []  # DFA table
         self.final_states = []  # Final states of DFA
