@@ -1,20 +1,21 @@
 import thompson as th
 import graphviz as gv
+from constants.Constants import *
 
 
 class Subsets(object):
     """
-    Class for generating DFA by subsets algorithm.
+    Class for generating dfa by subsets algorithm.
     """
 
     def __init__(self, exp: str):
         self.NFA: th.NFA = th.NFA(exp, True)  # Create NFA
 
-        # Operands that will be used in DFA for table
-        self.operands = set(exp).difference({'(', ')', '|', '*', '@', '.', '?', 'ε'})
+        # Operands that will be used in dfa for table
+        self.operands = set(exp).difference(Operators.OPERANDS)
 
-        self.Table = []  # DFA table
-        self.final_states = []  # Final states of DFA
+        self.Table = []  # dfa table
+        self.final_states = []  # Final states of dfa
 
         self.epsilon_visited = []  # List of visited states for epsilon closure
 
@@ -30,7 +31,7 @@ class Subsets(object):
 
     def evaluate(self, word: str):
         """
-        Evaluate word in DFA. \n
+        Evaluate word in dfa. \n
         :param word: word to evaluate.
         :return: True if word is accepted, False otherwise.
         """
@@ -67,8 +68,8 @@ class Subsets(object):
 
     def get_table_row(self):
         """
-        Get row for DFA table. \n
-        :return: DFA table row
+        Get row for dfa table. \n
+        :return: dfa table row
         """
         return [[], -1] + [-1 for _ in range(len(self.operands))]
 
@@ -93,7 +94,7 @@ class Subsets(object):
         for state in states:
             epsilon_states.add(int(str(state)))
             for transition in state.transitions:
-                if transition[0] == 'ε' and [state.state_num, int(str(transition[1]))] not in self.epsilon_visited:
+                if transition[0] == Constants.EPSILON and [state.state_num, int(str(transition[1]))] not in self.epsilon_visited:
                     self.epsilon_visited.append([state.state_num, int(str(transition[1]))])
                     epsilon_states.add(int(str(transition[1])))
                     child_epsilon_states = self.epsilon([int(str(transition[1]))])
@@ -166,7 +167,7 @@ class Subsets(object):
 
     def build_table(self):
         """
-        Build DFA table. \n
+        Build dfa table. \n
         :return: None
         """
         self.Table.append(self.get_table_row())

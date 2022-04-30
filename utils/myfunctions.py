@@ -1,10 +1,12 @@
-REGREX_OPERATORS = ['|', '*', '@', '.', '?']
+from constants.Constants import *
 
-PARENTHESIS_OPERATORS = ['(', ')']
+REGREX_OPERATORS = Operators.REGREX_OPERATORS
 
-NO_CONCATENATE_OPERATORS = ['|', '(']
+PARENTHESIS_OPERATORS = Operators.PARENTHESIS_OPERATORS
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '@', ')', '?']
+NO_CONCATENATE_OPERATORS = Operators.NO_CONCATENATE_OPERATORS
+
+NO_CONCATENATED_OPERATORS = Operators.NO_CONCATENATED_OPERATORS
 
 
 def check_parentheses(exp):
@@ -15,9 +17,9 @@ def check_parentheses(exp):
     """
     b_parenteses = 0
     for char in exp:
-        if char == '(':
+        if char == Operators.OPEN_PARENTHESIS:
             b_parenteses += 1
-        elif char == ')':
+        elif char == Operators.CLOSE_PARENTHESIS:
             b_parenteses -= 1
 
         if b_parenteses < 0:
@@ -32,7 +34,7 @@ def check_or(exp):
     :param exp:
     :return: True if or is correct. Otherwise, False.
     """
-    return exp[0] != '|' and exp[1] == '|' and exp[2] not in REGREX_OPERATORS
+    return exp[0] != Operators.OR and exp[1] == Operators.OR and exp[2] not in REGREX_OPERATORS
 
 
 def check_operator(exp):
@@ -63,7 +65,7 @@ def validate_regrex(exp):
         if all(char not in REGREX_OPERATORS for char in exp):
             return True
 
-        if '|' in exp:
+        if Operators.OR in exp:
             return False
 
         if exp[0] in PARENTHESIS_OPERATORS or exp[1] in PARENTHESIS_OPERATORS:
@@ -82,14 +84,14 @@ def validate_regrex(exp):
         if exp[0] in REGREX_OPERATORS:
             return False
 
-        if exp[0] == '(':
+        if exp[0] == Operators.OPEN_PARENTHESIS:
             sub_regrex = ''
             b_parenteses = 1
             while b_parenteses != 0:
                 i += 1
-                if exp[i] == '(':
+                if exp[i] == Operators.OPEN_PARENTHESIS:
                     b_parenteses += 1
-                elif exp[i] == ')':
+                elif exp[i] == Operators.CLOSE_PARENTHESIS:
                     b_parenteses -= 1
 
                 sub_regrex += exp[i]
@@ -97,7 +99,7 @@ def validate_regrex(exp):
             if not validate_regrex(sub_regrex[:-1]):
                 return False
 
-        if exp[len(exp) - 1] == '|':
+        if exp[len(exp) - 1] == Operators.OR:
             return False
 
         if exp[len(exp) - 1] in REGREX_OPERATORS and not check_operator(exp[len(exp) - 2: len(exp)] + 'a'):
@@ -112,14 +114,14 @@ def validate_regrex(exp):
                     check_operator(exp[i - 1: i + 2]) or check_or(exp[i - 1: i + 2])):
                 return False
 
-            if exp[i] == '(':
+            if exp[i] == Operators.OPEN_PARENTHESIS:
                 sub_regrex = ''
                 b_parenteses = 1
                 while b_parenteses != 0:
                     i += 1
-                    if exp[i] == '(':
+                    if exp[i] == Operators.OPEN_PARENTHESIS:
                         b_parenteses += 1
-                    elif exp[i] == ')':
+                    elif exp[i] == Operators.CLOSE_PARENTHESIS:
                         b_parenteses -= 1
 
                     sub_regrex += exp[i]
@@ -143,15 +145,15 @@ def rechange_regrex(exp):
     reg = ''
 
     while i < len(exp):
-        if exp[i] == '(':
+        if exp[i] == Operators.OPEN_PARENTHESIS:
             sub_regrex = ''
             b_parenteses = 1
 
             while b_parenteses != 0:
                 i += 1
-                if exp[i] == '(':
+                if exp[i] == Operators.OPEN_PARENTHESIS:
                     b_parenteses += 1
-                elif exp[i] == ')':
+                elif exp[i] == Operators.CLOSE_PARENTHESIS:
                     b_parenteses -= 1
 
                 sub_regrex += exp[i]
@@ -160,16 +162,16 @@ def rechange_regrex(exp):
 
             exp = exp.replace(sub_regrex[:-1], new_sub_regrex, 1)
 
-            reg = '(' + new_sub_regrex + ')'
+            reg = Operators.OPEN_PARENTHESIS + new_sub_regrex + Operators.CLOSE_PARENTHESIS
 
             i += len(new_sub_regrex) - len(sub_regrex[:-1])
 
-        elif exp[i] not in ['@'] + PARENTHESIS_OPERATORS:
+        elif exp[i] not in [Operators.POSITIVE] + PARENTHESIS_OPERATORS:
             reg = exp[i]
 
-        elif exp[i] == '@':
-            exp = exp.replace('@', '*', 1)
-            exp = exp[:i - len(reg)] + '(' + exp[i - len(reg):i] + reg + exp[i] + ')' + exp[i + 1:]
+        elif exp[i] == Operators.POSITIVE:
+            exp = exp.replace(Operators.POSITIVE, Operators.KLEENE, 1)
+            exp = exp[:i - len(reg)] + Operators.OPEN_PARENTHESIS + exp[i - len(reg):i] + reg + exp[i] + Operators.CLOSE_PARENTHESIS + exp[i + 1:]
             i += len(reg) + 2
 
         i += 1
@@ -183,18 +185,18 @@ def shunting_yard(exp):
     :param exp: The regular expression to be converted
     :return: The postfix notation of the regular expression
     """
-    precedence = {'(': 0, '|': 1, '.': 2, '*': 3, '@': 3, '?': 3, ')': 4}
-    exp = exp.replace(' ', '')
+    precedence = {Operators.OPEN_PARENTHESIS: 0, Operators.OR: 1, Operators.CONCAT: 2, Operators.KLEENE: 3, Operators.POSITIVE: 3, Operators.INTERROGATION: 3, Operators.CLOSE_PARENTHESIS: 4}
+    # exp = exp.replace(' ', '')
 
     stack = []
     output = []
 
     for char in exp:
         if char in REGREX_OPERATORS + PARENTHESIS_OPERATORS:
-            if char == '(':
+            if char == Operators.OPEN_PARENTHESIS:
                 stack.append(char)
-            elif char == ')':
-                while stack[-1] != '(':
+            elif char == Operators.CLOSE_PARENTHESIS:
+                while stack[-1] != Operators.OPEN_PARENTHESIS:
                     output.append(stack.pop())
                 stack.pop()
             else:
@@ -252,10 +254,11 @@ def add_concatenation(exp):
     i = 0
     while i < len(exp) - 1:
         if exp[i] not in NO_CONCATENATE_OPERATORS and exp[i + 1] not in NO_CONCATENATED_OPERATORS:
-            exp = exp[:i + 1] + '.' + exp[i + 1:]
+            exp = exp[:i + 1] + Operators.CONCAT + exp[i + 1:]
             i += 1
         i += 1
     return exp
+
 
 
 class Node(object):
@@ -277,10 +280,34 @@ class Node(object):
 
         # max number of children
         self.max_child_len = 2 if (
-                self.value == '|' or self.value == '.') else 1 if self.value in REGREX_OPERATORS else 0
+                self.value == Operators.OR or self.value == Operators.CONCAT) else 1 if self.value in REGREX_OPERATORS else 0
 
     def __len__(self):
         return 2 if self.left is not None and self.right is not None else 1 if self.left is not None or self.right is not None else 0
 
     def __str__(self):
         return self.value
+
+
+def print_tree(node: Node):
+    """
+    Print the tree \n
+    :param node: Node to be printed
+    :param level: Level of the node
+    :return: None
+    """
+    if node.left is not None:
+        print_tree(node.left)
+
+
+    print(node.value)
+
+    if node.right is not None:
+        print_tree(node.right)
+
+
+if __name__ == '__main__':
+    print('ケ"ゲゥケPゥ1ゥKゥkゥlゥgゥLゥrゥwゥjゥFゥmゥRゥuゥGゥTゥYゥiゥHゥXゥqゥQゥIゥUゥEゥbゥxゥAゥZゥWゥ	ゥCゥoゥpゥsゥSゥtゥNゥvゥ0ゥMゥyゥdゥaゥfゥOゥ ゥDゥBゥJゥcゥnゥVゥzゥhゥeゲケ"ゲ')
+    # print(add_concatenation('ケ"ゲゥケPゥ1ゥKゥkゥlゥgゥLゥrゥwゥjゥFゥmゥRゥuゥGゥTゥYゥiゥHゥXゥqゥQゥIゥUゥEゥbゥxゥAゥZゥWゥ	ゥCゥoゥpゥsゥSゥtゥNゥvゥ0ゥMゥyゥdゥaゥfゥOゥ ゥDゥBゥJゥcゥnゥVゥzゥhゥeゲケ"ゲ'))
+    print(shunting_yard(add_concatenation('ケ"ゲゥケPゥ1ゥKゥkゥlゥgゥLゥrゥwゥjゥFゥmゥRゥuゥGゥTゥYゥiゥHゥXゥqゥQゥIゥUゥEゥbゥxゥAゥZゥWゥ	ゥCゥoゥpゥsゥSゥtゥNゥvゥ0ゥMゥyゥdゥaゥfゥOゥ ゥDゥBゥJゥcゥnゥVゥzゥhゥeゲケ"ゲ')))
+    #print_tree(andres_method(shunting_yard(add_concatenation('ケ\tゥ ゲケケ\tゥ ゲゲァ'))))

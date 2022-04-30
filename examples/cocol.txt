@@ -1,0 +1,27 @@
+COMPILER Ejemplo
+
+CHARACTERS
+
+letter = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQSTUVWXYZ".
+digit = "0123456789".
+hexdigit = digit+"ABCDEF".
+puto = "578" - hexdigit.
+prueba3 = 's' + puto.
+tab = CHR(9) + CHR(23) + CHR(53).
+
+KEYWORDS
+
+if="if".
+while="while".
+
+TOKENS
+
+id = letter{letter} EXCEPT KEYWORDS.
+number = digit{digit}.
+hexnumber = hexdigit{hexdigit}"asfdafs"'a''a'"Hasasdasddfasd".
+example = digit digit.
+
+PRODUCTIONS
+
+
+END Ejemplo

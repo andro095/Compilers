@@ -1,13 +1,14 @@
 import graphviz as gv
-import myfunctions as mf
+from utils import myfunctions as mf
+from constants.Constants import *
 
-REGREX_OPERATORS = ['|', '*', '@', '.', '?']
+REGREX_OPERATORS = Operators.REGREX_OPERATORS
 
-PARENTHESIS_OPERATORS = ['(', ')']
+PARENTHESIS_OPERATORS = Operators.PARENTHESIS_OPERATORS
 
-NO_CONCATENATE_OPERATORS = ['|', '(']
+NO_CONCATENATE_OPERATORS = Operators.NO_CONCATENATE_OPERATORS
 
-NO_CONCATENATED_OPERATORS = ['|', '*', '@', ')', '?']
+NO_CONCATENATED_OPERATORS = Operators.NO_CONCATENATED_OPERATORS
 
 
 class StateNode(object):
@@ -69,7 +70,7 @@ class NFA(object):
         self.count = 0  # Count of states
         self.set_number_state(self.transition.initial_state)  # Set number of state
 
-        if not from_DFA:  # If NFA is from DFA
+        if not from_DFA:  # If NFA is from dfa
             # Graphviz object
             self.graph = gv.Digraph('NFA', format='png')
             self.graph.attr(rankdir='LR')
@@ -95,7 +96,7 @@ class NFA(object):
         for transition in state.transitions:
             if len(word) != 0 and transition[0] == word[0]:
                 evaluate = self.evaluate(word[1:], transition[1])
-            elif transition[0] == 'ε':
+            elif transition[0] == Constants.EPSILON:
                 evaluate = self.evaluate(word, transition[1])
 
             if evaluate:
@@ -204,7 +205,7 @@ class NFA(object):
             return transition
 
         else:
-            if node.value == '*' or node.value == '@' or node.value == '?':
+            if node.value == Operators.KLEENE or node.value == Operators.POSITIVE or node.value == Operators.INTERROGATION:
                 transition = Transition()
 
                 initial_state = StateNode()
@@ -214,13 +215,13 @@ class NFA(object):
                 self.states_nodes.append(final_state)
                 final_state.is_final = True
 
-                initial_state.add_transition(('ε', transition_left.initial_state))
-                if node.value != '@':
-                    initial_state.add_transition(('ε', final_state))
+                initial_state.add_transition((Constants.EPSILON, transition_left.initial_state))
+                if node.value != Operators.POSITIVE:
+                    initial_state.add_transition((Constants.EPSILON, final_state))
 
-                transition_left.final_state.add_transition(('ε', final_state))
-                if node.value != '?':
-                    transition_left.final_state.add_transition(('ε', transition_left.initial_state))
+                transition_left.final_state.add_transition((Constants.EPSILON, final_state))
+                if node.value != Operators.INTERROGATION:
+                    transition_left.final_state.add_transition((Constants.EPSILON, transition_left.initial_state))
 
                 transition_left.final_state.is_final = False
 
@@ -229,7 +230,7 @@ class NFA(object):
 
                 return transition
 
-            elif node.value == '|':
+            elif node.value == Operators.OR:
                 transition = Transition()
 
                 initial_state = StateNode()
@@ -244,18 +245,18 @@ class NFA(object):
                 transition_left.final_state.is_final = False
                 transition_right.final_state.is_final = False
 
-                initial_state.add_transition(('ε', transition_left.initial_state))
-                initial_state.add_transition(('ε', transition_right.initial_state))
+                initial_state.add_transition((Constants.EPSILON, transition_left.initial_state))
+                initial_state.add_transition((Constants.EPSILON, transition_right.initial_state))
 
-                transition_left.final_state.add_transition(('ε', final_state))
-                transition_right.final_state.add_transition(('ε', final_state))
+                transition_left.final_state.add_transition((Constants.EPSILON, final_state))
+                transition_right.final_state.add_transition((Constants.EPSILON, final_state))
 
                 transition.initial_state = initial_state
                 transition.final_state = final_state
 
                 return transition
 
-            elif node.value == '.':
+            elif node.value == Operators.CONCAT:
                 transition = Transition()
 
                 transition_left.final_state.transitions = transition_right.initial_state.transitions

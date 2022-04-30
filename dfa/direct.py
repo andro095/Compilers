@@ -1,7 +1,7 @@
-import myfunctions as mf
-import graphviz as gv
+from utils import myfunctions as mf
+from constants.Constants import *
 
-REGREX_OPERATORS = ['|', '*', '@', '.', '?']
+REGREX_OPERATORS = Operators.REGREX_OPERATORS
 
 
 def get_next_position_table_row(num: int, value: str):
@@ -16,16 +16,17 @@ def get_next_position_table_row(num: int, value: str):
 
 class Direct(object):
     """
-    Class for generating DFA by direct algorithm.
+    Class for generating dfa by direct algorithm.
     """
+
     def __init__(self, exp):
         # Root node of syntatic tree
-        self.root = mf.andres_method(mf.shunting_yard(mf.add_concatenation(mf.rechange_regrex(exp))))
+        self.root = mf.andres_method(mf.shunting_yard(mf.add_concatenation(exp)))
 
         self.final_node_number = 0  # Number of final node
 
-        # Operands that will be used in DFA for table
-        self.operands = set(exp).difference({'(', ')', '|', '*', '@', '.', '?', 'ε'})
+        # Operands that will be used in dfa for table
+        self.operands = set(exp).difference(Operators.OPERANDS)
 
         # Next Position Table
         self.next_position_table = []
@@ -38,7 +39,7 @@ class Direct(object):
         # Expand tree
         self.expand_tree()
 
-        self.count = 1 # Number of state
+        self.count = 1  # Number of state
 
         # Enumerate tree leafs
         self.enum_tree_leafs(self.root)
@@ -58,16 +59,9 @@ class Direct(object):
         # Build table
         self.build_table()
 
-        # Graphviz object
-        self.graph = gv.Digraph('DFA_direct', format='png')
-        self.graph.attr(rankdir='LR')
-        self.create_nodes()
-        self.create_edges()
-        self.graph.render(filename='images/DFA_direct ', view=True)
-
     def evaluate(self, word: str):
         """
-        Evaluate word in DFA. \n
+        Evaluate word in dfa. \n
         :param word: word to evaluate.
         :return: True if word is accepted, False otherwise.
         """
@@ -104,8 +98,8 @@ class Direct(object):
 
     def get_table_row(self):
         """
-        Get row for DFA table. \n
-        :return: DFA table row
+        Get row for dfa table. \n
+        :return: dfa table row
         """
         return [[], -1] + [-1 for _ in range(len(self.operands))]
 
@@ -163,8 +157,8 @@ class Direct(object):
         Expand tree adding #. \n
         :return: None
         """
-        root = mf.Node('.')
-        right = mf.Node('#')
+        root = mf.Node(Operators.CONCAT)
+        right = mf.Node(Constants.EXTENSION)
         root.right = right
         root.left = self.root
         self.root = root
@@ -180,12 +174,12 @@ class Direct(object):
         if node.right is not None:
             self.enum_tree_leafs(node.right)
         if node.left is None and node.right is None:
-            if node.value == 'ε':
-                node.label = 'ε'
+            if node.value == Constants.EPSILON:
+                node.label = Constants.EPSILON
             else:
                 node.label = str(self.count)
                 self.next_position_table.append(get_next_position_table_row(self.count, node.value))
-                if node.value == '#':
+                if node.value == Constants.EXTENSION:
                     self.final_node_number = self.count
                 self.count += 1
 
@@ -201,13 +195,13 @@ class Direct(object):
             self.nullable(node.right)
 
         if node.value in REGREX_OPERATORS:
-            if node.value == '|':
+            if node.value == Operators.OR:
                 node.nullable = node.left.nullable or node.right.nullable
-            elif node.value == '.':
+            elif node.value == Operators.CONCAT:
                 node.nullable = node.left.nullable and node.right.nullable
             else:
                 node.nullable = True
-        elif node.value == 'ε':
+        elif node.value == Constants.EPSILON:
             node.nullable = True
         else:
             node.nullable = False
@@ -224,16 +218,16 @@ class Direct(object):
             self.first(node.right)
 
         if node.value in REGREX_OPERATORS:
-            if node.value == '|':
+            if node.value == Operators.OR:
                 node.first_position = node.left.first_position.union(node.right.first_position)
-            elif node.value == '.':
+            elif node.value == Operators.CONCAT:
                 if node.left.nullable:
                     node.first_position = node.left.first_position.union(node.right.first_position)
                 else:
                     node.first_position = node.left.first_position
             else:
                 node.first_position = node.left.first_position
-        elif node.value == 'ε':
+        elif node.value == Constants.EPSILON:
             node.first_position = set()
         else:
             node.first_position = {node.label}
@@ -250,16 +244,16 @@ class Direct(object):
             self.last(node.right)
 
         if node.value in REGREX_OPERATORS:
-            if node.value == '|':
+            if node.value == Operators.OR:
                 node.last_position = node.left.last_position.union(node.right.last_position)
-            elif node.value == '.':
+            elif node.value == Operators.CONCAT:
                 if node.right.nullable:
                     node.last_position = node.left.last_position.union(node.right.last_position)
                 else:
                     node.last_position = node.right.last_position
             else:
                 node.last_position = node.left.last_position
-        elif node.value == 'ε':
+        elif node.value == Constants.EPSILON:
             node.last_position = set()
         else:
             node.last_position = {node.label}
@@ -275,10 +269,10 @@ class Direct(object):
         if node.right is not None:
             self.next(node.right)
 
-        if node.value == '.':
+        if node.value == Operators.CONCAT:
             for i in node.left.last_position:
                 self.next_position_table[int(i) - 1][2].update(node.right.first_position)
-        elif node.value == '*':
+        elif node.value == Operators.KLEENE:
             for i in node.left.last_position:
                 self.next_position_table[int(i) - 1][2].update(node.left.first_position)
 
