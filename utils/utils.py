@@ -24,7 +24,7 @@ def error(message, linenum = None):
     exit(3)
 
 
-def check_dual_operators(exp, linenum):
+def check_dual_operators(exp, linenum = None):
     """
     Check if the regrex expression has correct parenthesis collocation \n
     :param exp: regrex expression

@@ -76,12 +76,31 @@ class CocolConstants:
 
     basic_set_quotes = [escape_chars['apostrophe'], escape_chars['quote']]
 
+    ignore_token = 'IGNORE'
+
     no_found_token = 'NEL'
+
+    parameter_character = '\u30E4'
+
+    code_character = '\u30AD'
 
 
 
 
 def validate(line):
+    if CocolConstants.keywords['ignore'] in line[1]:
+        line_splited = line[1].split('=', 1)
+        if len(line_splited) != 2:
+            return 'Error en la linea ' + line[0] + ': ' + line[1] + '\n' + 'El token ' + CocolConstants.keywords['ignore'] + ' debe tener un solo signo de igualdad'
+
+        if line_splited[0].strip() != CocolConstants.keywords['ignore']:
+            return 'Error en la linea ' + line[0] + ': ' + line[1] + '\n' + 'El token ' + CocolConstants.keywords['ignore'] + ' debe tener el nombre ' + CocolConstants.keywords['ignore']
+
+        if not line_splited[1].strip().endswith('.'):
+            return 'Error en la linea ' + line[0] + ': ' + line[1] + '\n' + 'El token ' + CocolConstants.keywords['ignore'] + ' debe tener un punto al final'
+
+        return CocolConstants.keywords['ignore']
+
     if '=' in line[1] or '.' in line[1]:
         return False
 

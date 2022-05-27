@@ -13,9 +13,10 @@ class CocolReader(object):
         self.keywords = clc.CocolConstants().keywords
         self.data = []
         self.d_keywords = []
+        self.ignore_line = ''
         self.nd_keywords = []
 
-        essential_keywords = [self.keywords['productions'], self.keywords['compiler'], self.keywords['end']]
+        essential_keywords = [self.keywords['compiler'], self.keywords['end']]
 
         self.read()
 
@@ -58,10 +59,15 @@ class CocolReader(object):
         for line in self.data:
             if any(keyword in line[1] for keyword in self.keywords.values()):
                 validation = clc.validate(line)
-                if type(validation) == str:
+                if validation == self.keywords['ignore']:
+                    self.ignore_line = line[1].split('=')[1].strip()[:-1]
+                elif type(validation) == str:
                     error(validation, line[0])
                 elif validation:
                     self.d_keywords.append(line)
+
+
+
 
     def check_compiler_name(self):
         """
@@ -85,14 +91,21 @@ class CocolReader(object):
         Gets the non-keywords.\n
         :return: None
         """
-        self.nd_keywords = list(filter(lambda line: line not in self.d_keywords, self.data))
+        self.nd_keywords = list(filter(lambda line: line not in self.d_keywords and self.keywords['ignore'] not in line[1], self.data))
+
 
     def check_final_point(self):
         """
         Checks if point is at the end of all non-keywords lines. If not, displays error message.\n
         :return:
         """
+
+        productions_line = list(filter(lambda line: self.keywords['productions'] in line[1], self.d_keywords))[0][0]
+
         for line in self.nd_keywords:
+            if int(line[0]) > int(productions_line):
+                break
+
             if not line[1].endswith('.'):
                 error('La línea ' + line[0] + ' no termina con punto')
 
@@ -101,3 +114,4 @@ class CocolReader(object):
             if keyword in key[1]:
                 self.d_keywords.remove(key)
                 return
+

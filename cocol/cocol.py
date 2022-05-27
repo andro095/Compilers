@@ -2,8 +2,8 @@ import json
 import re
 from pprint import pprint
 
-
 from reader.cocolReader import CocolReader
+from cocolSintatic import cocolSintatic
 from utils.utils import *
 from constants.CocolConstants import CocolConstants as clc
 import constants.Constants as rec
@@ -21,6 +21,8 @@ close_operators = [operators['oc'], operators['ic']]
 esc_chars = [escaped_chars['quote'], escaped_chars['apostrophe']]
 sub_operators = cocol_constants.subs_operators
 chr_operators = cocol_constants.chr_operators
+basi_set_op = cocol_constants.basic_set_operators
+
 
 def validate_set_existence(char, i, linenum):
     if i == len(char):
@@ -28,6 +30,13 @@ def validate_set_existence(char, i, linenum):
 
     if i == len(char) - 1:
         error('No se declaro ningún set para el identificador', linenum)
+
+
+def string_between(string: str, start: str, end=None):
+    if end is None:
+        end = start
+
+    return string.startswith(start) and string.endswith(end)
 
 
 class Cocol(object):
@@ -40,6 +49,9 @@ class Cocol(object):
         self.characters = {}
         self.f_keywords = {}
         self.tokens = {}
+        self.an_tokens = {}
+        self.productions = {}
+        self.ignore_set = None
 
         self.init_division()
 
@@ -51,30 +63,39 @@ class Cocol(object):
 
         self.process_tokens()
 
+        self.process_productions()
+
+        self.process_ignore_set()
+
         self.transform_characters()
 
         self.transform_tokens()
 
-        self.save_tokens()
+        if self.keywords['productions'] in self.division:
+            self.productions = self.division[self.keywords['productions']]
 
-        self.generate_file()
+        cocolSintatic(self.an_tokens, self.tokens, self.productions)
+
+        # self.save_tokens()
+        #
+        # self.generate_file()
 
     def init_division(self):
         for keyword in self.cocol_reader.d_keywords:
             self.division[keyword[1].split(' ')[0]] = []
 
     def make_division(self):
-        prod = list(filter(lambda line: line[1].split(' ')[0] == self.keywords['productions'], self.cocol_reader.data))[
-            0]
-        top_limits = [keyword[0] for keyword in self.cocol_reader.d_keywords[1:] + [prod]]
+        top_limits = list(reversed(self.cocol_reader.d_keywords))
 
         i = 0
-        for nkeyword in self.cocol_reader.nd_keywords:
-            if int(nkeyword[0]) < int(top_limits[i]):
-                self.division[self.cocol_reader.d_keywords[i][1]].append(nkeyword)
-            else:
+
+        for nkeyword in reversed(self.cocol_reader.nd_keywords):
+            if int(nkeyword[0]) < int(top_limits[i][0]):
                 i += 1
-                self.division[self.cocol_reader.d_keywords[i][1]].append(nkeyword)
+                if i >= len(top_limits):
+                    error('Se encontró una línea fuera de posición', nkeyword[0])
+
+            self.division[top_limits[i][1]].insert(0, nkeyword)
 
     def extract_ident(self, char, linenum):
         char = char.replace(' ', '')
@@ -222,6 +243,9 @@ class Cocol(object):
             self.identifiers.append(identifier)
 
     def process_keywords(self):
+        if self.keywords['keywords'] not in self.division:
+            return
+
         for keyword in self.division[self.keywords['keywords']]:
 
             key = keyword[1][:-1].replace(' ', '')
@@ -243,9 +267,12 @@ class Cocol(object):
 
             self.f_keywords[identifier] = [keyword[0], ident_set]
             self.identifiers.append(identifier)
-        #pprint(self.f_keywords)
+        pprint(self.f_keywords)
 
     def process_tokens(self):
+        if self.keywords['tokens'] not in self.division:
+            return
+
         for token in self.division[self.keywords['tokens']]:
             tok = token[1][:-1]
 
@@ -289,6 +316,90 @@ class Cocol(object):
 
             self.tokens[identifier] = [token[0], [ident_set, has_keyword_exception]]
             self.identifiers.append(identifier)
+
+    def error_production(self, production, message):
+        linenum = ''
+        for prod in self.division[self.keywords['productions']]:
+            if production in prod[1]:
+                linenum = prod[0]
+                break
+        error(message, linenum)
+
+    def process_productions(self):
+        productions = [prod[1] for prod in self.division[self.keywords['productions']]]
+        productions = ''.join(productions)
+        productions = re.sub(r"\(\..*?\.\)", '', productions)
+        productions = re.sub(r"<[^(\")]*?>", '', productions)
+        matches = re.findall(r"\".*?\"", productions)
+        for match in matches:
+            if len(match) <= 2:
+                self.error_production(match, 'Se esperaba una cadena entre comillas')
+
+            if match not in [value[0] for value in self.an_tokens.values()]:
+                self.an_tokens['anus' + str(len(self.an_tokens))] = match
+
+        productions = re.sub(r"\".*?\"", '', productions)
+        productions = re.sub(r"\s+", ' ', productions).strip()
+        productions = productions.split('.')
+
+        if productions[-1] != '':
+            self.error_production(productions[-1], 'Se esperaba un punto final')
+
+        productions.pop()
+
+        cocol_operators = [value for key, value in operators.items() if key != 'space']
+
+        for production in productions:
+            if production == '':
+                self.error_production(production, 'Se esperaba una producción')
+
+            production_splitted = production.split('=')
+
+            if len(production_splitted) != 2:
+                self.error_production(production[0], 'Se esperaba solo un "="')
+
+            check_dual_operators(production_splitted[1])
+
+            if any([operator in production_splitted[0] for operator in cocol_operators]):
+                error('Los identificadores no pueden contener operadores CocolR')
+
+    def process_ignore_set(self):
+        ignore_line = re.sub(r"\s+", ' ', self.cocol_reader.ignore_line).strip()
+        operators = [letter for letter in ignore_line if
+                     letter == basi_set_op['plus'] or letter == basi_set_op['minus']]
+        ignore_chars = re.split(r"[" + re.escape(''.join(basi_set_op.values())) + r"]", ignore_line)
+        ignore_chars = list(map(lambda x: x.strip(), ignore_chars))
+
+        transformed_chars = []
+
+        for ignore_char in ignore_chars:
+            if ignore_char.startswith(chr_operators['co']) and ignore_char.endswith(chr_operators['cc']):
+                try:
+                    ignore_number = int(ignore_char[4:-1])
+                    char = chr(ignore_number)
+                    transformed_chars.append(list(char))
+                except ValueError:
+                    error('Se esperaba un número entero')
+            elif string_between(ignore_char, escaped_chars['apostrophe']) or string_between(ignore_char, escaped_chars['quote']):
+                if ignore_char.startswith(escaped_chars['apostrophe']) and len(ignore_char[1:-1]) > 1:
+                    error('Se esperaba un caracter entre comillas simples')
+                char = list(ignore_char[1:-1])
+                transformed_chars.append(char)
+            else:
+                error('Error al declarar caracteres en el conjunto de ignorados')
+
+        if len(operators) != len(transformed_chars) - 1:
+            error('Se esperaba un operador entre cada caracter ignorado')
+
+        ignore_set = set(transformed_chars[0])
+
+        for index, operator in enumerate(operators):
+            if operator == basi_set_op['minus']:
+                ignore_set -= set(transformed_chars[index + 1])
+            else:
+                ignore_set |= set(transformed_chars[index + 1])
+
+        self.ignore_set = ignore_set
 
     def transform_characters(self):
         for identifier in self.characters:
@@ -401,7 +512,8 @@ class Cocol(object):
                 token = replace_index(token, j, extended_buffer, i)
                 i = j + len(extended_buffer) - 1
             else:
-                if token[i] not in constants.COCOL_REGEX_OPERATORS + constants.PARENTHESIS_OPERATORS + [operators['space']]:
+                if token[i] not in constants.COCOL_REGEX_OPERATORS + constants.PARENTHESIS_OPERATORS + [
+                    operators['space']]:
                     error('Set mal escrito', linenum)
 
             i += 1
@@ -413,11 +525,18 @@ class Cocol(object):
             token = self.tokens[identifier][1][0]
             token = self.rechange_dual_keywords(token, self.tokens[identifier][0])
             token = self.replace_non_dual_keywords(token, self.tokens[identifier][0])
-            token = re.sub(constants.CLOSE_PARENTHESIS + ' ' + constants.OPEN_PARENTHESIS, constants.CLOSE_PARENTHESIS + constants.OPEN_PARENTHESIS, token)
+            token = re.sub(constants.CLOSE_PARENTHESIS + ' ' + constants.OPEN_PARENTHESIS,
+                           constants.CLOSE_PARENTHESIS + constants.OPEN_PARENTHESIS, token)
             token = re.sub(constants.KLEENE + ' ', constants.KLEENE, token)
             token = re.sub(constants.INTERROGATION + ' ', constants.INTERROGATION, token)
             self.tokens[identifier] = [token, self.tokens[identifier][1][1]]
-        pprint(self.tokens)
+
+        for an_token in self.an_tokens:
+            self.tokens[an_token] = [
+                constants.OPEN_PARENTHESIS + self.an_tokens[an_token][1:-1] + constants.CLOSE_PARENTHESIS, False]
+
+        self.tokens[cocol_constants.ignore_token] = [constants.OPEN_PARENTHESIS + constants.OR.join(self.ignore_set) + constants.CLOSE_PARENTHESIS, False]
+        # pprint(self.tokens)
 
     def save_tokens(self):
         json_data = {'tokens': [], 'keywords': []}
@@ -425,7 +544,7 @@ class Cocol(object):
             json_block = {'identifier': identifier,
                           'exp': self.tokens[identifier][0],
                           'except_keywords': str(int(self.tokens[identifier][1]))
-                        }
+                          }
             json_data['tokens'].append(json_block)
 
         for identifier in self.f_keywords:
@@ -434,7 +553,7 @@ class Cocol(object):
                           }
             json_data['keywords'].append(json_block)
 
-        with open('scaners/tokeys'+ self.cocol_reader.compiler_name + '.json', 'w') as f:
+        with open('scaners/tokeys' + self.cocol_reader.compiler_name + '.json', 'w') as f:
             json.dump(json_data, f)
             f.close()
 
@@ -542,7 +661,7 @@ if __name__ == '__main__':
     print('Tokens detectados: ' + ' '.join(process_line(line_to_eval)))
 
         """
-        with open('scaners/scanner'+ self.cocol_reader.compiler_name +'.py', 'w') as file:
+        with open('scaners/scanner' + self.cocol_reader.compiler_name + '.py', 'w') as file:
             file.write(file_content)
 
 
@@ -555,4 +674,4 @@ if __name__ == '__main__':
     #                                       filetypes=[('cocol', '.atg'), ('text', '.txt')],
     #                                       initialdir=os.getcwd())
 
-    cocol = Cocol('./examples/ArchivoPrueba2.atg')
+    cocol = Cocol('./../examples/ArchivoPrueba1.atg')
