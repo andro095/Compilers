@@ -15,33 +15,37 @@ PRODUCTIONS
 
 EstadoInicial = {Instruccion ";"}.
 
-Instruccion =									(. int resultado; .)
-	Expresion <ref resultado>					(. print(resultado); .)
+Instruccion =									(. resultado = 0 .)
+	Expresion <resultado>					    (. print(resultado) .)
 	.
 
-Expresion <ref int resultado> =					(. int resultado1, resultado2; .)
-	Termino <ref resultado1>
-	{		"+" Termino <ref resultado2>		(. resultado1 += resultado2; .)
-		  | "-" Termino <ref resultado2>		(. resultado1 -= resultado2; .)
-	}											(. resultado = resultado1; .)
+Expresion <resultado> =		        			(. resultado1 = 0; resultado2 = 0 .)
+	Termino <resultado1>
+	{		"+" Termino <resultado2>		    (. resultado1 += resultado2 .)
+		  | "-" Termino <resultado2>		    (. resultado1 -= resultado2 .)
+	}											(. resultado = resultado1 .)
+	(.return resultado.)
 	.
 
-Termino <ref int resultado> =					(. int resultado1, resultado2; .)
-	Factor <ref resultado1>
-	{		"*" Factor <ref resultado2>			(. resultado1 *= resultado2; .)
-		  | "/" Factor <ref resultado2>			(. resultado1 /= resultado2; .)
-	}											(. resultado = resultado1; .)
+Termino <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
+	Factor <resultado1>
+	{		"*" Factor <resultado2>			    (. resultado1 *= resultado2 .)
+		  | "/" Factor <resultado2>			    (. resultado1 /= resultado2 .)
+	}											(. resultado = resultado1 .)
+	(.return resultado.)
 	.
 
-Factor <ref int resultado> =					(.int signo = 1;.)
-	[		"-"									(.signo = -1;.) 
+Factor <resultado> =				        	(.signo = 1.)
+	[		"-"									(.signo = -1.)
 	]
-	( 		Number <ref resultado>
-		  | "(" Expresion < ref resultado> ")"
-	)											(. resultado *= signo; .)
+	( 		Number <resultado>
+		  | "(" Expresion <resultado> ")"
+	)											(. resultado *= signo .)
+	(.return resultado.)
 	.
 
-Number <ref int resultado> = numero				(. resultado = ultimoToken.obtenerValor(); .)
+Number <resultado> = numero				        (. resultado = float(self.lastvalue) .)
+    (.return resultado.)
 .
 
 END ArchivoPrueba1

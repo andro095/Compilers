@@ -74,7 +74,7 @@ class Cocol(object):
         if self.keywords['productions'] in self.division:
             self.productions = self.division[self.keywords['productions']]
 
-        cocolSintatic(self.an_tokens, self.tokens, self.productions)
+        cocolSintatic(self.an_tokens, self.tokens, self.productions, self.cocol_reader.compiler_name)
 
         # self.save_tokens()
         #
@@ -336,7 +336,8 @@ class Cocol(object):
                 self.error_production(match, 'Se esperaba una cadena entre comillas')
 
             if match not in [value[0] for value in self.an_tokens.values()]:
-                self.an_tokens['anus' + str(len(self.an_tokens))] = match
+                if match not in self.an_tokens.values():
+                    self.an_tokens['anus' + str(len(self.an_tokens))] = match
 
         productions = re.sub(r"\".*?\"", '', productions)
         productions = re.sub(r"\s+", ' ', productions).strip()
@@ -663,6 +664,7 @@ if __name__ == '__main__':
         """
         with open('scaners/scanner' + self.cocol_reader.compiler_name + '.py', 'w') as file:
             file.write(file_content)
+            file.close()
 
 
 if __name__ == '__main__':
