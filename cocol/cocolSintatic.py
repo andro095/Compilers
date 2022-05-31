@@ -1,9 +1,8 @@
 import re
 from utils.utils import error
 from constants.CocolConstants import *
-from cocolTree import *
+from cocol.cocolTree import *
 
-from pprint import pprint
 
 clc = CocolConstants()
 
@@ -196,9 +195,6 @@ class AnaSintac():
 
         self.build_program()
 
-        # print(self.an_tokens)
-        # print(self.firsts)
-
     def get_first(self, production_body):
         first = []
 
@@ -261,18 +257,8 @@ class AnaSintac():
         print('----------------------------------------------------------------------------------------------------')
 
         print(self.program)
+        print(self.an_tokens)
 
-        with open('../scaners/parser' + self.compiler_name + '.py', 'w+', encoding='utf-8') as file:
+        with open('scaners/parser' + self.compiler_name + '.py', 'w+', encoding='utf-8') as file:
             file.write(self.program)
             file.close()
-
-        # f = open('scaners/parser' + self.compiler_name + '.py', 'w', encoding='utf-8')
-        # f.write(self.program)
-        # f.close()
-
-        print('Fin del method\n')
-        exit(6)
-            # print(param_line)
-            # print('----------------------')
-
-            # print(self.functions_parameters[index])

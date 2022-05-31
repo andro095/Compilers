@@ -9,14 +9,14 @@ digito = "0123456789".
 TOKENS
 
 numero = digito{digito}.
-IGNORE = CHR(9) + CHR(10) + CHR(13) + CHR(20) + 'a' + "asdasd".
+IGNORE = CHR(9) + CHR(10) + CHR(13) + CHR(20).
 
 PRODUCTIONS
 
 EstadoInicial = {Instruccion ";"}.
 
 Instruccion =									(. resultado = 0 .)
-	Expresion <resultado>					    (. print(resultado) .)
+	Expresion <resultado>					    (. print('Resultado: ', resultado) .)
 	.
 
 Expresion <resultado> =		        			(. resultado1 = 0; resultado2 = 0 .)

@@ -3,7 +3,7 @@ import re
 from pprint import pprint
 
 from reader.cocolReader import CocolReader
-from cocolSintatic import cocolSintatic
+from cocol.cocolSintatic import cocolSintatic
 from utils.utils import *
 from constants.CocolConstants import CocolConstants as clc
 import constants.Constants as rec
@@ -76,9 +76,9 @@ class Cocol(object):
 
         cocolSintatic(self.an_tokens, self.tokens, self.productions, self.cocol_reader.compiler_name)
 
-        # self.save_tokens()
-        #
-        # self.generate_file()
+        self.save_tokens()
+
+        self.generate_file()
 
     def init_division(self):
         for keyword in self.cocol_reader.d_keywords:
@@ -570,6 +570,8 @@ from tkinter import filedialog
 
 from dfa.direct import Direct
 from utils.utils import error
+from parser""" + self.cocol_reader.compiler_name +""" import AnaSintac
+from colorama import Fore
 
 keywords = {}
 tokens = {}
@@ -577,6 +579,7 @@ line_to_eval = ''
 
 file_tokens = '""" + json_filename + """'
 no_token = '""" + cocol_constants.no_found_token + """'
+ignore_token = '""" + cocol_constants.ignore_token + """'
 
 
 def read_tokens():
@@ -613,7 +616,7 @@ def get_token(word):
 
 def read_eval_file(filename):
     with open(filename, 'r') as file:
-        line = file.readlines()[0]
+        line = file.readlines()
         file.close()
     return line
 
@@ -622,21 +625,56 @@ def process_line(line):
     ob_tokens = []
     i = 0
     buffer = ''
+    centinel = False
+    actual_match = False
+    initialized = False
+    past_match = False
+    nel_times = 0
+    past_token = ''
+    token = ''
     while i < len(line):
-        if line[i] == ' ':
-            obtained = get_token(buffer)
-            if obtained != no_token:
-                ob_tokens.append(obtained)
-                buffer = ''
-            else:
-                buffer += line[i]
+        if centinel:
+            if past_token != ignore_token:
+                print((past_token, buffer[:-1]))
+                ob_tokens.append((past_token, buffer[:-1]))
+            buffer = ''
+            i -= 2
+            centinel = False
+            nel_times = 0
         else:
             buffer += line[i]
+            token = get_token(buffer)
+
+            if token != no_token:
+                past_token = token
+                nel_times = 0
+                if not initialized:
+                    actual_match = True
+                    past_match = True
+                    initialized = True
+
+            else:
+                actual_match = False
+                nel_times += 1
+
+            if nel_times > 1:
+                print(Fore.YELLOW, 'Warning: algunos de los carecteres en la cadena no son válidos' + buffer)
+                print(Fore.RESET)
+                i -= len(buffer) - 1
+                buffer = ''
+                nel_times = 0
+
+            if past_match != actual_match:
+                actual_match = False
+                past_match = False
+                centinel = True
+                initialized = False
         i += 1
 
-    obtained = get_token(buffer)
-    if obtained != no_token:
-        ob_tokens.append(obtained)
+    token = get_token(buffer)
+    if token != no_token:
+        if token != ignore_token:
+            ob_tokens.append((token, buffer))
         buffer = ''
 
     if buffer != '':
@@ -659,8 +697,10 @@ if __name__ == '__main__':
 
     line_to_eval = read_eval_file(filepath)
 
-    print('Tokens detectados: ' + ' '.join(process_line(line_to_eval)))
+    line_to_eval = ''.join(line_to_eval)
 
+    AnaSintac(process_line(line_to_eval))
+    
         """
         with open('scaners/scanner' + self.cocol_reader.compiler_name + '.py', 'w') as file:
             file.write(file_content)

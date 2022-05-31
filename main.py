@@ -16,4 +16,4 @@ if __name__ == '__main__':
 
     cocol = Cocol(filepath)
 
-    print('Archivo scaner' + cocol.cocol_reader.compiler_name + '.py generado correctamente.')
+    print('Archivo scaner' + cocol.cocol_reader.compiler_name + '.py y parser' + cocol.cocol_reader.compiler_name + ' generado correctamente.')

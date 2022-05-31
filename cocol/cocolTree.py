@@ -37,14 +37,8 @@ class cocolTree():
             'oc': 0,
         }
 
-        # print('\nAntes:')
-        # print([(elem.Valor, elem.Atributo) for elem in self.regrex])
 
         self.add_contatenation()
-
-        # print('\nDespués:')
-        # print([(elem.Valor, elem.Atributo) for elem in self.regrex])
-        # print('-----------------------------------------------------')
 
         self.build_tree()
 

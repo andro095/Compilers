@@ -42,8 +42,8 @@ class AnaSintac():
         self.EstadoInicial()
 
     def EstadoInicial(self):
-        while self.currentToken in ['anus2', 'numero', 'anus5']:
-        	if self.currentToken in ['anus2', 'numero', 'anus5']:
+        while self.currentToken in ['numeroToken']:
+        	if self.currentToken in ['numeroToken']:
         		self.Instruccion()
         		if self.currentToken == "anus0":
         			self.coincidir("anus0")
@@ -51,59 +51,38 @@ class AnaSintac():
     def Instruccion(self):
         resultado = 0
         resultado = self.Expresion(resultado)
-        print('Resultado: ', resultado)
+        print("Resultado: ", resultado)
 
     def Expresion(self, resultado):
         resultado1 = 0;  resultado2 = 0
         resultado1 = self.Termino(resultado1)
-        while self.currentToken in ['anus1', 'anus2']:
+        while self.currentToken in ['anus1']:
         	if self.currentToken == "anus1":
         		self.coincidir("anus1")
         		resultado2 = self.Termino(resultado2)
-        		resultado1 += resultado2
-        	else:
-        		if self.currentToken == "anus2":
-        			self.coincidir("anus2")
-        			resultado2 = self.Termino(resultado2)
-        			resultado1 -= resultado2
-        resultado = resultado1
+        		resultado1 += resultado2; print("Término: ", resultado1)
+        resultado = resultado1; print("Término: ", resultado)
         return resultado
 
     def Termino(self, resultado):
         resultado1 = 0;  resultado2 = 0
         resultado1 = self.Factor(resultado1)
-        while self.currentToken in ['anus3', 'anus4']:
-        	if self.currentToken == "anus3":
-        		self.coincidir("anus3")
+        while self.currentToken in ['anus2']:
+        	if self.currentToken == "anus2":
+        		self.coincidir("anus2")
         		resultado2 = self.Factor(resultado2)
-        		resultado1 *= resultado2
-        	else:
-        		if self.currentToken == "anus4":
-        			self.coincidir("anus4")
-        			resultado2 = self.Factor(resultado2)
-        			resultado1 /= resultado2
-        resultado = resultado1
+        		resultado1 *= resultado2; print("Factor: ", resultado1)
+        resultado = resultado1; print("Factor: ", resultado)
         return resultado
 
     def Factor(self, resultado):
-        signo = 1
-        if self.currentToken in ['anus2']:
-        	if self.currentToken == "anus2":
-        		self.coincidir("anus2")
-        		signo = -1
-        if self.currentToken in ['numero']:
-        	resultado = self.Number(resultado)
-        else:
-        	if self.currentToken == "anus5":
-        		self.coincidir("anus5")
-        		resultado = self.Expresion(resultado)
-        		if self.currentToken == "anus6":
-        			self.coincidir("anus6")
-        resultado *= signo
+        resultado1 = 0
+        resultado1 = self.Numero(resultado1)
+        resultado = resultado1; print("Número: ", resultado)
         return resultado
 
-    def Number(self, resultado):
-        if self.currentToken == "numero":
-        	self.coincidir("numero")
-        	resultado = float(self.lastvalue)
+    def Numero(self, resultado):
+        if self.currentToken == "numeroToken":
+        	self.coincidir("numeroToken")
+        	resultado = float(self.lastvalue); print("Token: ", resultado)
         	return resultado

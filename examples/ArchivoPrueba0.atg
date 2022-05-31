@@ -14,33 +14,37 @@ PRODUCTIONS
 
 EstadoInicial = {Instruccion ";"}.
 
-Instruccion =									(. int resultado; .)
-	Expresion <ref resultado>					(. print("Resultado: " + resultado); .)
+Instruccion =									(. resultado = 0 .)
+	Expresion <resultado>   					(. print("Resultado: ", resultado) .)
 	.
 
-Expresion <ref int resultado> =					(. int resultado1, resultado2; .)
-	Termino <ref resultado1>
-	{		"+" Termino <ref resultado2>		(. resultado1 += resultado2;
-												   print("Término: " + resultado1); .)
+Expresion <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
+	Termino <resultado1>
+	{		"+" Termino <resultado2>		    (. resultado1 += resultado2;
+												   print("Término: ", resultado1) .)
 	}											(. resultado = resultado1;
-												   print("Término: " + resultado); .)
+												   print("Término: ", resultado) .)
+	(.return resultado.)
 	.
 
-Termino <ref int resultado> =					(. int resultado1, resultado2; .)
-	Factor <ref resultado1>
-	{		"*" Factor <ref resultado2>			(. resultado1 *= resultado2;
-												   print("Factor: " + resultado1); .)
+Termino <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
+	Factor <resultado1>
+	{		"*" Factor <resultado2>			    (. resultado1 *= resultado2;
+												   print("Factor: ", resultado1) .)
 	}											(. resultado = resultado1;
-												   print("Factor: " + resultado); .)
+												   print("Factor: ", resultado) .)
+	(.return resultado.)
 	.
 
-Factor <ref int resultado> =					(. int resultado1; .)
-	Numero <ref resultado1>						(. resultado = resultado1;
-												   print("Número: " + resultado); .)
+Factor <resultado> =				        	(. resultado1 = 0 .)
+	Numero <resultado1>				    		(. resultado = resultado1;
+												   print("Número: ", resultado) .)
+	(.return resultado.)
 	.
 
-Numero <ref int resultado> = numeroToken		(. resultado = ultimoToken.obtenerValor();
-												   print("Token: " + resultado); .)
+Numero <resultado> = numeroToken	        	(. resultado = float(self.lastvalue);
+												   print("Token: ", resultado) .)
+    (.return resultado.)
 .
 
 END ArchivoPrueba0
