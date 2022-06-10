@@ -94,7 +94,7 @@ def process_line(line):
                 nel_times += 1
 
             if nel_times > 1:
-                print(Fore.YELLOW, 'Warning: algunos carecters no validos en la cadena ' + buffer)
+                print(Fore.YELLOW, 'Warning: algunos de los carecteres en la cadena no son válidos' + buffer)
                 print(Fore.RESET)
                 i -= len(buffer) - 1
                 buffer = ''

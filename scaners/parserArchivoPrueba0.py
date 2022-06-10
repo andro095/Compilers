@@ -56,20 +56,25 @@ class AnaSintac():
     def Expresion(self, resultado):
         resultado1 = 0;  resultado2 = 0
         resultado1 = self.Termino(resultado1)
-        while self.currentToken in ['anus1']:
+        while self.currentToken in ['anus1', 'anus2']:
         	if self.currentToken == "anus1":
         		self.coincidir("anus1")
         		resultado2 = self.Termino(resultado2)
         		resultado1 += resultado2; print("Término: ", resultado1)
+        	else:
+        		if self.currentToken == "anus2":
+        			self.coincidir("anus2")
+        			resultado2 = self.Termino(resultado2)
+        			resultado1 -= resultado2; print("Término: ", resultado1)
         resultado = resultado1; print("Término: ", resultado)
         return resultado
 
     def Termino(self, resultado):
         resultado1 = 0;  resultado2 = 0
         resultado1 = self.Factor(resultado1)
-        while self.currentToken in ['anus2']:
-        	if self.currentToken == "anus2":
-        		self.coincidir("anus2")
+        while self.currentToken in ['anus3']:
+        	if self.currentToken == "anus3":
+        		self.coincidir("anus3")
         		resultado2 = self.Factor(resultado2)
         		resultado1 *= resultado2; print("Factor: ", resultado1)
         resultado = resultado1; print("Factor: ", resultado)

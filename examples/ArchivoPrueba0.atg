@@ -20,8 +20,10 @@ Instruccion =									(. resultado = 0 .)
 
 Expresion <resultado> =					        (. resultado1 = 0; resultado2 = 0 .)
 	Termino <resultado1>
-	{		"+" Termino <resultado2>		    (. resultado1 += resultado2;
+	{		"suma" Termino <resultado2>		    (. resultado1 += resultado2;
 												   print("Término: ", resultado1) .)
+		  | "resta" Termino <resultado2>		(. resultado1 -= resultado2;
+                                                   print("Término: ", resultado1) .)
 	}											(. resultado = resultado1;
 												   print("Término: ", resultado) .)
 	(.return resultado.)
